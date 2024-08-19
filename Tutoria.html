@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutoria Digital</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #343a40;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        .signature-pad {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            width: 100%;
+            height: 200px;
+            cursor: crosshair;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        .tutoria-list {
+            margin-top: 30px;
+        }
+
+        .tutoria-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tutoria Digital</h1>
+        <form id="tutoriaForm">
+            <div class="form-group">
+                <label for="nomeAluno">Nome do Aluno</label>
+                <input type="text" class="form-control" id="nomeAluno" required>
+            </div>
+            <div class="form-group">
+                <label for="nomePai">Nome do Pai</label>
+                <input type="text" class="form-control" id="nomePai">
+            </div>
+            <div class="form-group">
+                <label for="nomeMae">Nome da Mãe</label>
+                <input type="text" class="form-control" id="nomeMae">
+            </div>
+            <div class="form-group">
+                <label for="endereco">Endereço</label>
+                <input type="text" class="form-control" id="endereco">
+            </div>
+            <div class="form-group">
+                <label for="celulares">Celulares</label>
+                <input type="text" class="form-control" id="celulares">
+            </div>
+            <div class="form-group">
+                <label for="telefone">Telefone</label>
+                <input type="text" class="form-control" id="telefone">
+            </div>
+            <div class="form-group">
+                <label for="serie">Série</label>
+                <input type="text" class="form-control" id="serie">
+            </div>
+            <div class="form-group">
+                <label for="nomeTutor">Nome do Tutor</label>
+                <input type="text" class="form-control" id="nomeTutor">
+            </div>
+            <div class="form-group">
+                <label for="projetoVida">Projeto de Vida</label>
+                <textarea class="form-control" id="projetoVida" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="assuntoPessoal">Assunto Pessoal</label>
+                <textarea class="form-control" id="assuntoPessoal" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="checkPessoal">Check Pessoal</label>
+                <input type="checkbox" id="checkPessoal">
+            </div>
+            <div class="form-group">
+                <label for="checkPedagogico">Check Pedagógico</label>
+                <input type="checkbox" id="checkPedagogico">
+            </div>
+            <div class="form-group">
+                <label>Data e Hora</label>
+                <p id="dataHora"></p>
+            </div>
+            <div class="form-group">
+                <label>Assinatura Digital</label>
+                <canvas id="signaturePad" class="signature-pad"></canvas>
+                <button type="button" class="btn btn-secondary mt-2" id="clearSignature">Limpar Assinatura</button>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="saveTutoria()">Salvar Tutoria</button>
+            <button type="button" class="btn btn-warning" onclick="clearForm()">Limpar Formulário</button>
+        </form>
+
+        <div class="tutoria-list">
+            <h2>Lista de Tutorias</h2>
+            <div id="tutoriaList"></div>
+        </div>
+
+        <button type="button" class="btn btn-danger" onclick="resetData()">Resetar Tutorias (Requer Senha)</button>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+    <!-- jsPDF and html2canvas for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+
+    <script>
+        // Exibir data e hora atual
+        function updateDataHora() {
+            const now = new Date();
+            const dataHora = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR');
+            document.getElementById('dataHora').innerText = dataHora;
+        }
+
+        setInterval(updateDataHora, 1000);
+
+        // Funções para a assinatura digital
+        const canvas = document.getElementById('signaturePad');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function getTouchPos(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.touches[0].clientX - rect.left,
+                y: event.touches[0].clientY - rect.top
+            };
+        }
+
+        function startPosition(event) {
+            drawing = true;
+            draw(event);
+        }
+
+        function endPosition() {
+            drawing = false;
+            ctx.beginPath();
+        }
+
+        function draw(event) {
+            if (!drawing) return;
+
+            event.preventDefault(); // Evitar comportamentos padrão, como rolagem na touch screen
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = 'black';
+
+            let pos;
+
+            if (event.type.includes('mouse')) {
+                pos = getMousePos(event);
+            } else if (event.type.includes('touch')) {
+                pos = getTouchPos(event);
+            }
+
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        // Eventos para mouse
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+
+        // Eventos para touch
+        canvas.addEventListener('touchstart', startPosition);
+        canvas.addEventListener('touchend', endPosition);
+        canvas.addEventListener('touchmove', draw);
+
+        document.getElementById('clearSignature').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Função para salvar uma tutoria
+        function saveTutoria() {
+            const tutoriaData = {
+                nomeAluno: document.getElementById('nomeAluno').value,
+                nomePai: document.getElementById('nomePai').value,
+                nomeMae: document.getElementById('nomeMae').value,
+                endereco: document.getElementById('endereco').value,
+                celulares: document.getElementById('celulares').value,
+                telefone: document.getElementById('telefone').value,
+                serie: document.getElementById('serie').value,
+                nomeTutor: document.getElementById('nomeTutor').value,
+                projetoVida: document.getElementById('projetoVida').value,
+                assuntoPessoal: document.getElementById('assuntoPessoal').value,
+                checkPessoal: document.getElementById('checkPessoal').checked,
+                checkPedagogico: document.getElementById('checkPedagogico').checked,
+                dataHora: document.getElementById('dataHora').innerText,
+                assinatura: canvas.toDataURL()
+            };
+
+            let tutorias = JSON.parse(localStorage.getItem('tutorias')) || [];
+            tutorias.push(tutoriaData);
+            localStorage.setItem('tutorias', JSON.stringify(tutorias));
+
+            renderTutoriaList();
+            clearForm();
+        }
+
+        // Função para limpar o formulário
+        function clearForm() {
+            document.getElementById('tutoriaForm').reset();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Função para renderizar a lista de tutorias
+        function renderTutoriaList() {
+            const tutoriaList = document.getElementById('tutoriaList');
+            tutoriaList.innerHTML = '';
+
+            let tutorias = JSON.parse(localStorage.getItem('tutorias')) || [];
+
+            tutorias.forEach((tutoria, index) => {
+                const tutoriaItem = document.createElement('div');
+                tutoriaItem.className = 'tutoria-item';
+
+                const tutoriaInfo = document.createElement('div');
+                tutoriaInfo.innerHTML = `<strong>${tutoria.nomeAluno}</strong> - ${tutoria.dataHora}`;
+
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'btn-group';
+
+                const btnSavePDF = document.createElement('button');
+                btnSavePDF.className = 'btn btn-sm btn-success';
+                btnSavePDF.innerText = 'Salvar em PDF';
+                btnSavePDF.onclick = () => saveAsPDF(index);
+
+                const btnLoad = document.createElement('button');
+                btnLoad.className = 'btn btn-sm btn-primary';
+                btnLoad.innerText = 'Carregar';
+                btnLoad.onclick = () => loadTutoria(index);
+
+                btnGroup.appendChild(btnSavePDF);
+                btnGroup.appendChild(btnLoad);
+
+                tutoriaItem.appendChild(tutoriaInfo);
+                tutoriaItem.appendChild(btnGroup);
+
+                tutoriaList.appendChild(tutoriaItem);
+            });
+        }
+
+        // Função para carregar uma tutoria para edição
+        function loadTutoria(index) {
+            let tutorias = JSON.parse(localStorage.getItem('tutorias')) || [];
+            const tutoria = tutorias[index];
+
+            document.getElementById('nomeAluno').value = tutoria.nomeAluno;
+            document.getElementById('nomePai').value = tutoria.nomePai;
+            document.getElementById('nomeMae').value = tutoria.nomeMae;
+            document.getElementById('endereco').value = tutoria.endereco;
+            document.getElementById('celulares').value = tutoria.celulares;
+            document.getElementById('telefone').value = tutoria.telefone;
+            document.getElementById('serie').value = tutoria.serie;
+            document.getElementById('nomeTutor').value = tutoria.nomeTutor;
+            document.getElementById('projetoVida').value = tutoria.projetoVida;
+            document.getElementById('assuntoPessoal').value = tutoria.assuntoPessoal;
+            document.getElementById('checkPessoal').checked = tutoria.checkPessoal;
+            document.getElementById('checkPedagogico').checked = tutoria.checkPedagogico;
+            document.getElementById('dataHora').innerText = tutoria.dataHora;
+
+            const img = new Image();
+            img.src = tutoria.assinatura;
+            img.onload = function () {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+        }
+
+        // Função para salvar uma tutoria como PDF
+        function saveAsPDF(index) {
+            let tutorias = JSON.parse(localStorage.getItem('tutorias')) || [];
+            const tutoria = tutorias[index];
+
+            const pdf = new jspdf.jsPDF();
+            pdf.text(`Tutoria de ${tutoria.nomeAluno}`, 10, 10);
+            pdf.text(`Nome do Pai: ${tutoria.nomePai}`, 10, 20);
+            pdf.text(`Nome da Mãe: ${tutoria.nomeMae}`, 10, 30);
+            pdf.text(`Endereço: ${tutoria.endereco}`, 10, 40);
+            pdf.text(`Celulares: ${tutoria.celulares}`, 10, 50);
+            pdf.text(`Telefone: ${tutoria.telefone}`, 10, 60);
+            pdf.text(`Série: ${tutoria.serie}`, 10, 70);
+            pdf.text(`Nome do Tutor: ${tutoria.nomeTutor}`, 10, 80);
+            pdf.text(`Projeto de Vida: ${tutoria.projetoVida}`, 10, 90);
+            pdf.text(`Assunto Pessoal: ${tutoria.assuntoPessoal}`, 10, 100);
+            pdf.text(`Check Pessoal: ${tutoria.checkPessoal ? 'Sim' : 'Não'}`, 10, 110);
+            pdf.text(`Check Pedagógico: ${tutoria.checkPedagogico ? 'Sim' : 'Não'}`, 10, 120);
+            pdf.text(`Data e Hora: ${tutoria.dataHora}`, 10, 130);
+
+            const img = new Image();
+            img.src = tutoria.assinatura;
+            img.onload = function () {
+                pdf.addImage(img, 'PNG', 10, 140, 180, 60);
+                pdf.save(`Tutoria_${tutoria.nomeAluno}.pdf`);
+            };
+        }
+
+        // Função para resetar dados salvos, com confirmação de senha
+        function resetData() {
+            const senha = prompt("Digite a senha para resetar os dados:");
+            if (senha === "1234") {  // Substitua "1234" pela senha desejada
+                localStorage.removeItem('tutorias');
+                renderTutoriaList();
+                alert("Todos os dados foram resetados.");
+            } else {
+                alert("Senha incorreta. Não foi possível resetar os dados.");
+            }
+        }
+
+        // Inicializar a lista de tutorias
+        renderTutoriaList();
+    </script>
+</body>
+</html>

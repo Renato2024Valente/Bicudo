@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boletim do Aluno</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Tutoria Digital</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Home</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="boletim.html">Boletim</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2>Boletim do Aluno</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Matéria</th>
+                        <th>1º Bimestre</th>
+                        <th>2º Bimestre</th>
+                        <th>3º Bimestre</th>
+                        <th>4º Bimestre</th>
+                        <th>Média</th>
+                        <th>Faltas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Matemática</td>
+                        <td><input type="number" class="form-control"></td>
+                        <td><input type="number" class="form-control"></td>
+                        <td><input type="number" class="form-control"></td>
+                        <td><input type="number" class="form-control"></td>
+                        <td><input type="number" class="form-control" readonly></td>
+                        <td><input type="number" class="form-control"></td>
+                    </tr>
+                    <!-- Adicionar mais matérias conforme necessário -->
+                </tbody>
+            </table>
+        </div>
+        <button type="button" class="btn btn-primary">Salvar Boletim</button>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Exemplo simples para calcular a média das notas
+        document.querySelectorAll('tr').forEach(row => {
+            const inputs = row.querySelectorAll('input[type="number"]');
+            if (inputs.length > 0) {
+                inputs[inputs.length - 2].addEventListener('input', () => {
+                    const notas = Array.from(inputs).slice(0, 4).map(input => parseFloat(input.value) || 0);
+                    const media = notas.reduce((acc, nota) => acc + nota, 0) / notas.length;
+                    inputs[inputs.length - 2].value = media.toFixed(2);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
